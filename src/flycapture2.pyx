@@ -387,7 +387,7 @@ cdef class Context:
             "min_num_image_notifications": config.minNumImageNotifications,
             "grab_timeout": config.grabTimeout,
             "grab_mode": config.grabMode,
-            "high_performance_retrieve_buffer": config.highPerformanceRetrieveBuffer,
+            #"high_performance_retrieve_buffer": config.highPerformanceRetrieveBuffer,
             "isoch_bus_speed": config.isochBusSpeed,
             "async_bus_speed": config.asyncBusSpeed,
             "bandwidth_allocation": config.bandwidthAllocation,
@@ -408,7 +408,7 @@ cdef class Context:
         config.minNumImageNotifications = min_num_image_notifications
         config.grabTimeout = grab_timeout
         config.grabMode = grab_mode
-        config.highPerformanceRetrieveBuffer = high_performance_retrieve_buffer
+        #config.highPerformanceRetrieveBuffer = high_performance_retrieve_buffer
         config.isochBusSpeed = isoch_bus_speed
         config.asyncBusSpeed = async_bus_speed
         config.bandwidthAllocation = bandwidth_allocation
@@ -642,3 +642,33 @@ cdef class Image:
 
     def get_format(self):
         return self.fmt or self.img.format
+        
+    def get_timestamp(self):
+        with nogil:
+            ts=fc2GetImageTimeStamp( &self.img)
+        return ts
+        
+    def save_as_png(self,filename):
+        cdef fc2ImageFileFormat format
+        format=PNG
+        pystring=filename.encode('utf-8')
+        cdef char* filename_c=pystring
+        with nogil:
+            fc2SaveImage( &self.img, filename_c, format )
+    
+    def save_as_pngwithopt(self,filename,compressionlevel=1,interlaced=False):
+        cdef fc2PNGOption option
+        option.compressionLevel=compressionlevel
+        option.interlaced=interlaced
+        cdef fc2ImageFileFormat format
+        format=PNG
+        
+        pystring=filename.encode('utf-8')
+        cdef char* filename_c=pystring
+        
+        with nogil:
+            fc2SaveImageWithOption(&self.img, filename_c, format, &option)
+    
+    
+        
+ 
